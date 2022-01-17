@@ -1,0 +1,513 @@
+---
+openapi: 3.0.2
+info:
+  title: Wordcab
+  description: |
+    [Return Home](/)
+    # Overview
+    Wordcab is an API that automatically summarizes conversations. Possible input falls into three categories:
+    raw audio files, transcript documents, and JSON-based transcripts. Output includes a structured transcript
+    and summary, among other useful metadata.
+    ## API Key
+    To authenticate your request, simply include the `apikey` parameter as one of your query parameters if you're using
+    our REST API. If you don’t have an API key, you can head over to the [Signup](/signup/) page to
+    sign up for a Free Plan. Afterwards you’ll be redirected to your [Dashboard](/dashboard/). From there, head to
+    your [Account](/account/) page and click to copy the blurred API key.
+    ## Base URL
+    All API requests will need to include the following base URL.
+    `https://wordcab.com/api`
+  version: "1.0.0"
+#  x-logo:
+#    url: https://wordcab.com/static/summarizer/img/logo.svg
+#    altText: Wordcab Logo
+
+servers:
+  - url: https://wordcab.com/api
+    description: Wordcab API base URL
+
+paths:
+  "/upload/":
+    post:
+      tags:
+      - Upload
+      security:
+        - APIKeyParam: []
+      summary: Upload Conversation
+      description: Takes an audio file or transcript as input and starts a summarization job.
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_name:
+                    type: string
+                    description: A reference you can use to poll the status of your job.
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: The reason for the error.
+      x-codeSamples:
+        - lang: Python
+          label: Python (JSON Input)
+          source: |-
+            import requests
+
+            endpoint = "https://wordcab.com/api/upload/" # <= Slash required
+            apikey = "YOUR_API_KEY"
+
+            source = "generic" # <= Important
+            display_name = "Generic Transcript" # <= Optional, but recommended
+
+            params = {
+                "apikey": apikey,
+                "display_name": display_name,
+                "source": source,
+            }
+
+            data = {
+                "transcript": [
+                    "Joe: This is an example of a generic transcript.",
+                    "Jill: Oh wow, just a speaker label, colon, and the utterance?"
+                ]
+            }
+
+            r = requests.post(endpoint, params=params, json=data)
+            print(r.json())
+        - lang: Python
+          label: Python (Text File Input)
+          source: |-
+            import requests
+
+            endpoint = "https://wordcab.com/api/upload/" # <= Slash required
+            apikey = "YOUR_API_KEY"
+
+            display_name = "Generic Transcript" # <= Optional, but recommended
+            source = "generic" # <= Important
+
+            params = {
+                "apikey": apikey,
+                "display_name": display_name,
+                "source": source,
+            }
+
+            file_path = f"/path/to/generic_transcript.txt"
+            files = {
+                "transcript": open(file_path, "rb")
+            }
+
+            r = requests.post(endpoint, params=params, files=files)
+            print(r.json())
+        - lang: Python
+          label: Python (Audio File Input)
+          source: |-
+            import requests
+
+            endpoint = "https://wordcab.com/api/upload/" # <= Slash required
+            apikey = "YOUR_API_KEY"
+
+            file = "your_meeting_audio.mp3"
+            file_path = f"/path/to/{file}"
+
+            display_name = "Meeting Audio" # <= Optional, but recommended
+            source = "audio" # <= "audio" is the default source value
+
+            files = {
+                "audio_file": open(file_path, "rb")
+            }
+            params = {
+                "apikey": apikey,
+                "display_name": display_name,
+                "source": source,
+            }
+
+            r = requests.post(endpoint, params=params, files=files)
+            print(r.json())
+        - lang: JavaScript
+          label: JavaScript (JSON Input)
+          source: |-
+            // Add an ending slash for POST requests
+            const endpoint = new URL("https://wordcab.com/api/upload/");
+
+            const transcriptData = {
+              transcript: [
+                "Joe: This is an example of a generic transcript.",
+                "Jill: Oh wow, just a speaker label, colon, and the utterance?"
+              ]
+            };
+
+            const requestOptions = {
+              method: "POST",
+              body: JSON.stringify(transcriptData),
+              redirect: "follow"
+            };
+
+            const params = {
+              "apikey": "YOUR_API_KEY",
+              "source": "generic", // <= Important
+              "display_name": "Generic Transcript", // <= Optional, but recommended
+            };
+
+            endpoint.search = new URLSearchParams(params).toString();
+
+            fetch(endpoint, requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log('error', error));
+        - lang: JavaScript
+          label: JavaScript (Text File Input)
+          source: |-
+            // Add an ending slash for POST requests
+            const endpoint = new URL("https://wordcab.com/api/upload/");
+
+            const formdata = new FormData();
+            formdata.append("transcript", fileInput.files[0], "/path/to/file");
+
+            const requestOptions = {
+              method: "POST",
+              body: formdata,
+              redirect: "follow"
+            };
+
+            const params = {
+              "apikey": "YOUR_API_KEY",
+              "source": "generic", // <= Important
+              "display_name": "Generic Transcript", // <= Optional, but recommended
+            };
+
+            endpoint.search = new URLSearchParams(params).toString();
+
+            fetch(endpoint, requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log("error", error));
+        - lang: JavaScript
+          label: JavaScript (Audio File Input)
+          source: |-
+            // Add an ending slash for POST requests
+            const endpoint = new URL("https://wordcab.com/api/upload/");
+
+            const formdata = new FormData();
+            formdata.append("audio_file", fileInput.files[0], "/path/to/file");
+
+            const requestOptions = {
+              method: "POST",
+              body: formdata,
+              redirect: "follow"
+            };
+
+            const params = {
+              "apikey": "YOUR_API_KEY",
+              "source": "audio", // <= "audio" is the default source value
+              "display_name": "Meeting Audio", // <= Optional, but recommended
+            };
+
+            endpoint.search = new URLSearchParams(params).toString();
+
+            fetch(endpoint, requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log("error", error));
+        - lang: cURL
+          label: cURL (JSON Input)
+          source: |-
+            curl -X POST \
+              --url "https://wordcab.com/api/upload/?apikey=YOUR_API_KEY&source=generic&display_name=Generic Transcript" \
+              --header 'Content-Type: application/json' \
+              --data-raw '{
+                "transcript": [
+                  "Joe: This is an example of a generic transcript.",
+                  "Jill: Oh wow, just a speaker label, colon, and the utterance?",
+                  ...
+                ]
+              }'
+        - lang: cURL
+          label: cURL (Text File Input)
+          source: |-
+            curl -X POST \
+              --url "https://wordcab.com/api/upload/?apikey=YOUR_API_KEY&source=generic&display_name=Generic Transcript" \
+              --form transcript=@"/path/to/file"
+        - lang: cURL
+          label: cURL (Audio File Input)
+          source: |-
+            curl -X POST \
+              --url "https://wordcab.com/api/upload/?apikey=YOUR_API_KEY&source=audio&display_name=Meeting Audio" \
+              --form audio_file=@"/path/to/file"
+      parameters:
+        - name: apikey
+          in: query
+          description: Your account's API key.
+          required: true
+          schema:
+            type: string
+        - name: source
+          in: query
+          description: |
+            The type of input you want to summarize.
+
+            Allowed values for `source` and what they refer to:
+
+            * `audio`: A raw audio file, including flac, m4a, mp3, mpga, ogg, and wav. See the [Summarizing Audio Files](https://docs.wordcab.com/quick-start/wordcab-api-quick-start/summarizing-audio-files) guide.
+            * `generic`: A *.txt* transcript or JSON-based transcript. See the [Summarizing Assembly AI Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-assembly-ai-transcripts) guide.
+            * `assembly_ai`: The Assembly AI `utterances` object. See the [Summarizing Assembly AI Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-assembly-ai-transcripts) guide.
+            * `deepgram`: The Deepgram `utterances` object. See the [Summarizing Deepgram Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-deepgram-transcripts) guide.
+          required: true
+          schema:
+            type: string
+            example: audio
+        - name: display_name
+          in: query
+          description: The human-readable name of your job.
+          required: false
+          schema:
+            type: string
+    get:
+      tags:
+        - Upload
+      security:
+        - APIKeyParam: [ ]
+      summary: Poll Job
+      description: Poll the status of your summary job. Once the job is `Complete`, you'll receive the full output.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Incomplete"
+                  - $ref: "#/components/schemas/Complete"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: The reason for the error.
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |-
+            curl "https://wordcab.com/api/upload?apikey=YOUR_API_KEY&job_name=JOB_NAME"
+        - lang: Python
+          label: Python
+          source: |-
+            import requests
+
+            endpoint = "https://wordcab.com/api/upload" # <= Slash optional
+            apikey = "YOUR_API_KEY"
+            job_name = "JOB_NAME"
+
+            params = {
+                "apikey": apikey,
+                "job_name": job_name
+            }
+
+            r = requests.get(endpoint, params=params)
+            print(r.json())
+        - lang: JavaScript
+          label: JavaScript
+          source: |-
+            // Ending slash for GET requests is optional
+            const endpoint = new URL("https://wordcab.com/api/upload");
+
+            const requestOptions = {
+              method: "GET",
+              redirect: "follow"
+            };
+
+            const params = {
+              "apikey": "YOUR_API_KEY",
+              "job_name": "JOB_NAME"
+            };
+
+            endpoint.search = new URLSearchParams(params).toString();
+
+            fetch(endpoint, requestOptions)
+              .then(response => response.text())
+              .then(result => console.log(result))
+              .catch(error => console.log("error", error));
+      parameters:
+        - name: apikey
+          in: query
+          description: Your account's API key.
+          required: true
+          schema:
+            type: string
+        - name: job_name
+          in: query
+          description: A reference to your job.
+          required: true
+          schema:
+            type: string
+        - name: summary_len
+          in: query
+          description: The length of the summary you're retrieving. Can be any value between `1-5`.
+          required: false
+          schema:
+            type: string
+            default: 3
+            minimum: 1
+            maximum: 5
+components:
+  securitySchemes:
+    APIKeyParam:
+      type: apiKey
+      name: apikey
+      in: query
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Description of the authorization error
+            example:
+                detail: Invalid token.
+  schemas:
+    Incomplete:
+      type: object
+      properties:
+        job_name:
+          type: string
+          description: A reference to your job.
+        status:
+          type: string
+          description: |-
+            The status of your current job. Incomplete statuses include:
+
+            * `Pending`: The summarization job has been created, but processing has not started.
+            * `Item Queued`: The job has been queued and will begin processing shortly.
+            * `Transcribing`: Only relevant for audio uploads, which first need to be transcribed before they're summarized.
+            * `Preparing`: The transcript is being prepared for summarization.
+            * `Summarizing`: The transcript is in the process of being summarized by Wordcab.
+            * `Finalizing`: The generated summary is going through any necessary post-processing.
+            * `Error`: There was an error processing the job.
+    Complete:
+      type: object
+      properties:
+        job_name:
+          type: string
+          description: A reference to your job.
+        status:
+          type: string
+          description: |-
+            A Complete status only includes one value: `Complete`.
+        source:
+          type: string
+          description: |-
+            The original input format. Could be one of the following values:
+
+            * `audio`: A raw audio file, including flac, m4a, mp3, mpga, ogg, and wav. See the [Summarizing Audio Files](https://docs.wordcab.com/quick-start/wordcab-api-quick-start/summarizing-audio-files) guide.
+            * `generic`: A *.txt* transcript or JSON-based transcript. See the [Summarizing Assembly AI Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-assembly-ai-transcripts) guide.
+            * `assembly_ai`: The Assembly AI `utterances` object. See the [Summarizing Assembly AI Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-assembly-ai-transcripts) guide.
+            * `deepgram`: The Deepgram `utterances` object. See the [Summarizing Deepgram Transcripts](https://docs.wordcab.com/guides/guides/summarizing-transcripts-from-other-services/summarizing-deepgram-transcripts) guide.
+        summary:
+          type: array
+          items:
+            type: string
+          description: An array of summary paragraphs. Joined together, forms the complete summary for a particular `summary_len`.
+        summary_len:
+          type: integer
+          default: 3
+          minimum: 1
+          maximum: 5
+          description: The length of the summary you're retrieving. Can be any value between `1-5`.
+        transcript:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+                description: The utterance, or the text that was said by a particular speaker.
+              speaker:
+                type: string
+                description: The speaker's label, denoted as a letter `A-Z`.
+              start:
+                type: string
+                description: A human-readable timestamp of the start of the utterance.
+              end:
+                type: string
+                description: A human-readable timestamp of the end of the utterance.
+              timestamp_start:
+                type: integer
+                description: A machine-readable timestamp of the start of the utterance, in milliseconds.
+              timestamp_end:
+                type: integer
+                description: A machine-readable timestamp of the end of the utterance, in milliseconds.
+          description: An array of objects, each containing an utterance and its metadata, derived from the original transcript.
+        speaker_map:
+          type: object
+          description: The speaker label (`A-Z`) is the key, while the value is how the speaker is represented in the summary.
+          additionalProperties:
+            type: string
+        display_name:
+          type: string
+          description: The human-readable name of your job.
+        structured_summary:
+          type: array
+          description: An array of objects, each containing a summary paragraph and its associated metadata. Combined, the summary paragraphs form a complete summary for a particular `sumamry_len`.
+          items:
+            type: object
+            properties:
+              summary:
+                type: string
+                description: A paragraph from the .
+              speaker:
+                type: string
+                description: The speaker's label, denoted as a letter `A-Z`.
+              start:
+                type: string
+                description: A human-readable timestamp that corresponds to the start of the transcript segment that was used to generate the summary.
+              end:
+                type: string
+                description: A human-readable timestamp that corresponds to the end of the transcript segment that was used to generate the summary.
+              timestamp_start:
+                type: integer
+                description: A machine-readable timestamp that corresponds to the start of the transcript segment that was used to generate the summary, in milliseconds.
+              timestamp_end:
+                type: integer
+                description: A machine-readable timestamp that corresponds to the end of the transcript segment that was used to generate the summary, in milliseconds.
+              transcript_segment:
+                type: array
+                description: An array of utterance objects, corresponding to the section of the transcript that was summarized.
+                items:
+                  type: object
+                  properties:
+                    text:
+                      type: string
+                      description: The utterance, or the text that was said by a particular speaker.
+                    speaker:
+                      type: string
+                      description: The speaker's label, denoted as a letter `A-Z`.
+                    start:
+                      type: string
+                      description: A human-readable timestamp of the start of the utterance.
+                    end:
+                      type: string
+                      description: A human-readable timestamp of the end of the utterance.
+                    timestamp_start:
+                      type: integer
+                      description: A machine-readable timestamp of the start of the utterance, in milliseconds.
+                    timestamp_end:
+                      type: integer
+                      description: A machine-readable timestamp of the end of the utterance, in milliseconds.
+
+
+
